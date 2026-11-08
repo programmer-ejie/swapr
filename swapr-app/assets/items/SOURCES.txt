@@ -1,0 +1,17 @@
+Sample photos for Swapr UI testing. Source: Unsplash.
+License: https://unsplash.com/license
+
+camera.jpg: https://images.unsplash.com/photo-1516035069371-29a1b244cc32
+Download: https://images.unsplash.com/photo-1516035069371-29a1b244cc32
+jacket.jpg: https://images.unsplash.com/photo-1543076447-215ad9ba6923
+Download: https://images.unsplash.com/photo-1543076447-215ad9ba6923
+bicycle.jpg: https://images.unsplash.com/photo-1485965120184-e220f721d03e
+Download: https://images.unsplash.com/photo-1485965120184-e220f721d03e
+lamp.jpg: https://images.unsplash.com/photo-1507473885765-e6ed057f782c
+Download: https://images.unsplash.com/photo-1507473885765-e6ed057f782c
+books.jpg: https://images.unsplash.com/photo-1495446815901-a7297e633e8d
+Download: https://images.unsplash.com/photo-1495446815901-a7297e633e8d
+headphones.jpg: https://images.unsplash.com/photo-1505740420928-5e560c06d30e
+Download: https://images.unsplash.com/photo-1505740420928-5e560c06d30e
+bag.jpg: https://images.unsplash.com/photo-1553062407-98eeb64c6a62
+Download: https://images.unsplash.com/photo-1553062407-98eeb64c6a62

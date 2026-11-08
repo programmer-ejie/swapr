@@ -1,0 +1,28 @@
+SWAPR COLOR PALETTE
+Approved palette: teal + mint + warm white, with coral used sparingly.
+
+Deep teal     #0F766E  Primary buttons, active navigation, selected filters
+Soft mint     #DDF4EE  Secondary buttons, selected cards, icon backgrounds
+Warm white    #FAFAF7  Screen background
+White         #FFFFFF  Cards, inputs, bottom navigation
+Charcoal      #202A29  Headings and primary text
+Slate grey    #64716E  Supporting text and inactive navigation
+Light grey    #E3E8E5  Borders and dividers
+Warm coral    #F4846B  Celebration accents; avoid white text on coral
+
+Keep the main navigation teal even when Leon changes category colors.
+Use white text on deep teal buttons. Use charcoal/teal text on mint.
+Source of truth in code: swapr-app/src/constants/palette.ts
+Sample photo sources: swapr-app/assets/items/SOURCES.txt
+
+DARK MODE
+Teal accent   #5ED5BF
+Deep mint     #183D37
+Background    #101917
+Card surface  #192522
+Primary text  #ECF4F0
+Muted text    #A6BBB3
+Borders       #30453D
+Coral accent  #F4846B
+Use useAppTheme() for screen colors. Theme follows the device initially;
+the header moon/sun button overrides it for the current app session.
