@@ -2,6 +2,7 @@ import { useAppTheme } from './app-theme';
 import type { ColorValue } from 'react-native';
 import { SymbolView } from 'expo-symbols';
 const symbols = {
+ mail: {ios:'envelope',android:'mail',web:'mail'},
   wifiOff: {ios:'wifi.slash',android:'wifi_off',web:'wifi_off'},
   refresh: {ios:'arrow.clockwise',android:'refresh',web:'refresh'},
   settings: {ios:'gearshape',android:'settings',web:'settings'},
