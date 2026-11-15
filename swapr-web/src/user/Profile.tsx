@@ -1,9 +1,17 @@
-import { FormEvent, useMemo, useState } from 'react';
-import type { AuthUser } from './Products';
-import defaultProfilePhoto from './assets/images/user-default.webp';
+import { api, readImage } from "../api";
+import { FormEvent, useMemo, useState } from "react";
+import type { AuthUser } from "./Products";
+import defaultProfilePhoto from "./assets/images/user-default.webp";
 
-const API_BASE_URL = process.env.REACT_APP_API_URL ?? 'http://localhost:4000';
-const requiredProfileFields: (keyof AuthUser)[] = ['firstname', 'middlename', 'lname', 'email', 'age', 'gender', 'birthdate', 'placeOfBirth'];
+const requiredProfileFields: (keyof AuthUser)[] = [
+  "firstname",
+  "lname",
+  "email",
+  "age",
+  "gender",
+  "birthdate",
+  "placeOfBirth",
+];
 
 const isProfileComplete = (user: AuthUser | null) => {
   if (!user) {
@@ -13,17 +21,17 @@ const isProfileComplete = (user: AuthUser | null) => {
   return requiredProfileFields.every((field) => {
     const value = user[field];
 
-    if (typeof value === 'number') {
+    if (typeof value === "number") {
       return value > 0;
     }
 
-    return typeof value === 'string' ? value.trim().length > 0 : Boolean(value);
+    return typeof value === "string" ? value.trim().length > 0 : Boolean(value);
   });
 };
 
 const formatDateForInput = (value?: string | null) => {
   if (!value) {
-    return '';
+    return "";
   }
 
   return value.slice(0, 10);
@@ -31,13 +39,13 @@ const formatDateForInput = (value?: string | null) => {
 
 const formatDisplayDate = (value?: string | null) => {
   if (!value) {
-    return 'Not set';
+    return "Not set";
   }
 
-  return new Intl.DateTimeFormat('en-US', {
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric',
+  return new Intl.DateTimeFormat("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
   }).format(new Date(value));
 };
 
@@ -49,26 +57,30 @@ interface ProfileProps {
 function Profile({ user, onUserUpdate }: ProfileProps) {
   const [profileOffcanvasOpen, setProfileOffcanvasOpen] = useState(false);
   const [profileOffcanvasClosing, setProfileOffcanvasClosing] = useState(false);
-  const [profilePhotoPreview, setProfilePhotoPreview] = useState('');
-  const [saveMessage, setSaveMessage] = useState('');
+  const [profilePhotoPreview, setProfilePhotoPreview] = useState("");
+  const [saveMessage, setSaveMessage] = useState("");
   const [saving, setSaving] = useState(false);
-  const profileOffcanvasVisible = profileOffcanvasOpen || profileOffcanvasClosing;
+  const profileOffcanvasVisible =
+    profileOffcanvasOpen || profileOffcanvasClosing;
   const profileComplete = isProfileComplete(user);
-  const displayName = [user?.firstname, user?.middlename, user?.lname].filter(Boolean).join(' ') || 'No information yet';
-  const profileHandle = user?.email ? `@${user.email.split('@')[0]}` : '@swapr';
-  const profileDescription = 'Local seller focused on quality preloved items and safe public meetups.';
+  const displayName =
+    [user?.firstname, user?.middlename, user?.lname]
+      .filter(Boolean)
+      .join(" ") || "No information yet";
+  const profileHandle = user?.email ? `@${user.email.split("@")[0]}` : "@swapr";
+  const profileDescription = user?.description || "";
   const profileFields = useMemo(
     () => [
-      ['First name', user?.firstname || 'Not set'],
-      ['Middle name', user?.middlename || 'Not set'],
-      ['Last name', user?.lname || 'Not set'],
-      ['Email', user?.email || 'Not set'],
-      ['Age', user?.age ? String(user.age) : 'Not set'],
-      ['Gender', user?.gender || 'Not set'],
-      ['Birthday', formatDisplayDate(user?.birthdate)],
-      ['Place of birth', user?.placeOfBirth || 'Not set'],
-      ['Created at', formatDisplayDate(user?.created_at)],
-      ['Updated at', formatDisplayDate(user?.updated_at)],
+      ["First name", user?.firstname || "Not set"],
+      ["Middle name", user?.middlename || "Not set"],
+      ["Last name", user?.lname || "Not set"],
+      ["Email", user?.email || "Not set"],
+      ["Age", user?.age ? String(user.age) : "Not set"],
+      ["Gender", user?.gender || "Not set"],
+      ["Birthday", formatDisplayDate(user?.birthdate)],
+      ["Place of birth", user?.placeOfBirth || "Not set"],
+      ["Created at", formatDisplayDate(user?.created_at)],
+      ["Updated at", formatDisplayDate(user?.updated_at)],
     ],
     [user],
   );
@@ -87,7 +99,7 @@ function Profile({ user, onUserUpdate }: ProfileProps) {
     setProfileOffcanvasOpen(false);
     window.setTimeout(() => {
       setProfileOffcanvasClosing(false);
-      setProfilePhotoPreview('');
+      setProfilePhotoPreview("");
     }, 260);
   };
 
@@ -99,44 +111,39 @@ function Profile({ user, onUserUpdate }: ProfileProps) {
     }
 
     setSaving(true);
-    setSaveMessage('');
+    setSaveMessage("");
 
     const formData = new FormData(event.currentTarget);
     const payload = {
-      firstname: String(formData.get('firstname') ?? '').trim(),
-      middlename: String(formData.get('middlename') ?? '').trim(),
-      lname: String(formData.get('lname') ?? '').trim(),
-      age: Number(formData.get('age')),
-      gender: String(formData.get('gender') ?? ''),
-      birthdate: String(formData.get('birthdate') ?? ''),
-      placeOfBirth: String(formData.get('placeOfBirth') ?? '').trim(),
+      firstname: String(formData.get("firstname") ?? "").trim(),
+      middlename: String(formData.get("middlename") ?? "").trim(),
+      lname: String(formData.get("lname") ?? "").trim(),
+      age: Number(formData.get("age")),
+      gender: String(formData.get("gender") ?? ""),
+      birthdate: String(formData.get("birthdate") ?? ""),
+      placeOfBirth: String(formData.get("placeOfBirth") ?? "").trim(),
       newUser: false,
+      description: String(formData.get("description") ?? "").trim(),
+      ...(profilePhotoPreview ? { profilePicUrl: profilePhotoPreview } : {}),
     };
 
     try {
-      const response = await fetch(`${API_BASE_URL}/profile/${user.id}`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+      const data = await api<{ user: AuthUser }>(`/profile/${user.id}`, {
+        method: "PATCH",
         body: JSON.stringify(payload),
       });
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message ?? 'Failed to save profile');
-      }
-
       onUserUpdate(data.user as AuthUser);
-      setSaveMessage('Profile saved. You can now use the rest of Swapr.');
+      setSaveMessage("Profile saved. You can now use the rest of Swapr.");
       setProfileOffcanvasClosing(true);
       setProfileOffcanvasOpen(false);
       window.setTimeout(() => {
         setProfileOffcanvasClosing(false);
-        setProfilePhotoPreview('');
+        setProfilePhotoPreview("");
       }, 260);
     } catch (error) {
-      setSaveMessage(error instanceof Error ? error.message : 'Failed to save profile');
+      setSaveMessage(
+        error instanceof Error ? error.message : "Failed to save profile",
+      );
     } finally {
       setSaving(false);
     }
@@ -144,18 +151,28 @@ function Profile({ user, onUserUpdate }: ProfileProps) {
 
   return (
     <>
-      <section className={`profile-hero ${profileComplete ? '' : 'profile-hero-empty'}`}>
+      <section
+        className={`profile-hero ${profileComplete ? "" : "profile-hero-empty"}`}
+      >
         <div className="profile-identity">
-          <img src={defaultProfilePhoto} alt="" className="avatar avatar-lg rounded-circle" />
+          <img
+            src={user?.profilePicUrl || defaultProfilePhoto}
+            alt=""
+            className="avatar avatar-lg rounded-circle"
+          />
           <div>
             <span>Account profile</span>
             <h1>{displayName}</h1>
             <p>{profileHandle}</p>
           </div>
         </div>
-        <button className="shop-add-button" type="button" onClick={openProfileOffcanvas}>
+        <button
+          className="shop-add-button"
+          type="button"
+          onClick={openProfileOffcanvas}
+        >
           <i className="ti ti-pencil" />
-          {profileComplete ? 'Edit profile' : 'Set up profile'}
+          {profileComplete ? "Edit profile" : "Set up profile"}
         </button>
       </section>
 
@@ -166,7 +183,7 @@ function Profile({ user, onUserUpdate }: ProfileProps) {
               <h2>Profile Information</h2>
               <p>Public and account details connected to your Swapr profile.</p>
             </div>
-            <span>Verified</span>
+            <span>Profile complete</span>
           </div>
 
           <div className="profile-info-grid">
@@ -192,7 +209,8 @@ function Profile({ user, onUserUpdate }: ProfileProps) {
             <span>Profile setup</span>
             <h2>No information yet</h2>
             <p>
-              Add your personal details first so your Swapr account can be trusted for chat-based listings and public meetups.
+              Add your personal details first so your Swapr account can be
+              trusted for chat-based listings and public meetups.
             </p>
           </div>
         </section>
@@ -201,17 +219,24 @@ function Profile({ user, onUserUpdate }: ProfileProps) {
       {profileOffcanvasVisible && (
         <>
           <div
-            className={`shop-offcanvas-backdrop ${profileOffcanvasClosing ? 'closing' : ''}`}
+            className={`shop-offcanvas-backdrop ${profileOffcanvasClosing ? "closing" : ""}`}
             onClick={closeProfileOffcanvas}
           />
-          <aside className={`shop-offcanvas ${profileOffcanvasClosing ? 'closing' : ''}`} aria-label="Edit profile form">
+          <aside
+            className={`shop-offcanvas ${profileOffcanvasClosing ? "closing" : ""}`}
+            aria-label="Edit profile form"
+          >
             <div className="shop-offcanvas-header">
               <div>
                 <h2>Edit profile</h2>
                 <p>Update your profile details and public account photo.</p>
               </div>
               {!user?.newUser && (
-                <button type="button" aria-label="Close edit profile form" onClick={closeProfileOffcanvas}>
+                <button
+                  type="button"
+                  aria-label="Close edit profile form"
+                  onClick={closeProfileOffcanvas}
+                >
                   <i className="ti ti-x" />
                 </button>
               )}
@@ -222,7 +247,10 @@ function Profile({ user, onUserUpdate }: ProfileProps) {
                 <i className="ti ti-shield-check" />
                 <div>
                   <strong>Profile tip</strong>
-                  <span>Keep your name, contact details, and bio accurate so buyers can trust your listings.</span>
+                  <span>
+                    Keep your name, contact details, and bio accurate so buyers
+                    can trust your listings.
+                  </span>
                 </div>
               </div>
 
@@ -230,9 +258,15 @@ function Profile({ user, onUserUpdate }: ProfileProps) {
                 Profile photo
                 <span className="shop-photo-preview profile-photo-preview">
                   {profilePhotoPreview ? (
-                    <img src={profilePhotoPreview} alt="Selected profile preview" />
+                    <img
+                      src={profilePhotoPreview}
+                      alt="Selected profile preview"
+                    />
                   ) : (
-                    <img src={defaultProfilePhoto} alt="" />
+                    <img
+                      src={user?.profilePicUrl || defaultProfilePhoto}
+                      alt=""
+                    />
                   )}
                   <span className="shop-photo-action">
                     <i className="ti ti-camera-plus" />
@@ -242,10 +276,13 @@ function Profile({ user, onUserUpdate }: ProfileProps) {
                 <input
                   className="form-control"
                   type="file"
-                  accept="image/*"
+                  accept="image/png,image/jpeg,image/webp"
                   onChange={(event) => {
                     const file = event.target.files?.[0];
-                    setProfilePhotoPreview(file ? URL.createObjectURL(file) : '');
+                    if (file)
+                      void readImage(file)
+                        .then(setProfilePhotoPreview)
+                        .catch((error) => setSaveMessage(error.message));
                   }}
                 />
               </label>
@@ -253,30 +290,67 @@ function Profile({ user, onUserUpdate }: ProfileProps) {
               <div className="shop-form-grid">
                 <label>
                   First name
-                  <input className="form-control" name="firstname" placeholder="Enter first name" defaultValue={user?.firstname ?? ''} required />
+                  <input
+                    className="form-control"
+                    name="firstname"
+                    placeholder="Enter first name"
+                    defaultValue={user?.firstname ?? ""}
+                    required
+                  />
                 </label>
                 <label>
                   Middle name
-                  <input className="form-control" name="middlename" placeholder="Enter middle name" defaultValue={user?.middlename ?? ''} required />
+                  <input
+                    className="form-control"
+                    name="middlename"
+                    placeholder="Optional"
+                    defaultValue={user?.middlename ?? ""}
+                  />
                 </label>
               </div>
               <label>
                 Last name
-                <input className="form-control" name="lname" placeholder="Enter last name" defaultValue={user?.lname ?? ''} required />
+                <input
+                  className="form-control"
+                  name="lname"
+                  placeholder="Enter last name"
+                  defaultValue={user?.lname ?? ""}
+                  required
+                />
               </label>
               <label>
                 Email
-                <input className="form-control" type="email" value={user?.email ?? ''} readOnly />
+                <input
+                  className="form-control"
+                  type="email"
+                  value={user?.email ?? ""}
+                  readOnly
+                />
               </label>
               <div className="shop-form-grid">
                 <label>
                   Age
-                  <input className="form-control" name="age" type="number" min="1" placeholder="Enter age" defaultValue={user?.age ?? ''} required />
+                  <input
+                    className="form-control"
+                    name="age"
+                    type="number"
+                    min="1"
+                    placeholder="Enter age"
+                    defaultValue={user?.age ?? ""}
+                    required
+                  />
                 </label>
                 <label>
                   Gender
-                  <select className="form-select" name="gender" defaultValue={user?.gender ?? ''} required>
-                    <option value="" disabled>Select gender</option>
+                  <select
+                    className="form-select"
+                    name="gender"
+                    defaultValue={user?.gender ?? ""}
+                    required
+                  >
+                    <option value="" disabled>
+                      Select gender
+                    </option>
                     <option>Female</option>
                     <option>Male</option>
                     <option>Non-binary</option>
@@ -286,19 +360,42 @@ function Profile({ user, onUserUpdate }: ProfileProps) {
               </div>
               <label>
                 Birthday
-                <input className="form-control" name="birthdate" type="date" defaultValue={formatDateForInput(user?.birthdate)} required />
+                <input
+                  className="form-control"
+                  name="birthdate"
+                  type="date"
+                  defaultValue={formatDateForInput(user?.birthdate)}
+                  required
+                />
               </label>
               <label>
                 Place of birth
-                <input className="form-control" name="placeOfBirth" placeholder="City, province, or country" defaultValue={user?.placeOfBirth ?? ''} required />
+                <input
+                  className="form-control"
+                  name="placeOfBirth"
+                  placeholder="City, province, or country"
+                  defaultValue={user?.placeOfBirth ?? ""}
+                  required
+                />
               </label>
               <label>
                 Profile description
-                <textarea className="form-control" rows={4} placeholder="Share a short note about your Swapr profile" defaultValue={profileDescription} />
+                <textarea
+                  name="description"
+                  maxLength={2000}
+                  className="form-control"
+                  rows={4}
+                  placeholder="Share a short note about your Swapr profile"
+                  defaultValue={profileDescription}
+                />
               </label>
               {saveMessage && <p className="auth-note">{saveMessage}</p>}
-              <button className="shop-submit-button" type="submit" disabled={saving}>
-                {saving ? 'Saving...' : 'Save profile'}
+              <button
+                className="shop-submit-button"
+                type="submit"
+                disabled={saving}
+              >
+                {saving ? "Saving..." : "Save profile"}
               </button>
             </form>
           </aside>

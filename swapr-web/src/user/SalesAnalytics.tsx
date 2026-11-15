@@ -1,146 +1,99 @@
-const stats = [
-  ['Revenue', 'PHP 25,000', '+5.2%', 'ti-wallet', 'primary'],
-  ['Orders closed', '48', '+12.4%', 'ti-shopping-bag-check', 'success'],
-  ['Avg. order value', 'PHP 521', '+3.1%', 'ti-receipt', 'info'],
-  ['Conversion rate', '18.6%', '+2.8%', 'ti-trending-up', 'warning'],
-];
-
-const monthlySales = [
-  ['Jan', 42],
-  ['Feb', 58],
-  ['Mar', 47],
-  ['Apr', 76],
-  ['May', 64],
-  ['Jun', 88],
-  ['Jul', 72],
-  ['Aug', 94],
-  ['Sep', 81],
-  ['Oct', 108],
-  ['Nov', 96],
-  ['Dec', 118],
-];
-
-const categories = [
-  ['Electronics', 'PHP 9,420', 82],
-  ['Fashion', 'PHP 6,180', 58],
-  ['Home Goods', 'PHP 4,750', 44],
-  ['Accessories', 'PHP 3,260', 31],
-];
-
-const funnel = [
-  ['Listing views', '2,840', 100],
-  ['Buyer messages', '526', 72],
-  ['Meetups set', '128', 46],
-  ['Sales closed', '48', 28],
-];
-
-function SalesAnalytics() {
+import { money } from "../api";
+import { useApi } from "../useApi";
+type Analytics = {
+  summary: { orders: number; revenue: string; average: string };
+  monthly: { month: string; revenue: string }[];
+  categories: { title: string; revenue: string }[];
+};
+export default function SalesAnalytics() {
+  const result = useApi<Analytics>("/analytics", {
+    summary: { orders: 0, revenue: "0", average: "0" },
+    monthly: [],
+    categories: [],
+  });
+  const { summary, monthly, categories } = result.data;
+  const maximum = Math.max(1, ...monthly.map((m) => Number(m.revenue)));
+  const download = () => {
+    const rows = [
+      ["Metric", "Value"],
+      ["Revenue", summary.revenue],
+      ["Orders", String(summary.orders)],
+      ["Average order value", summary.average],
+    ];
+    const blob = new Blob([rows.map((r) => r.join(",")).join("\n")], {
+      type: "text/csv;charset=utf-8",
+    });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "swapr-sales.csv";
+    link.click();
+    URL.revokeObjectURL(url);
+  };
   return (
     <>
       <div className="analytics-hero">
         <div>
           <span>Sales intelligence</span>
           <h1>Sales Analytics</h1>
-          <p>Track revenue, listing demand, and buyer conversion across your marketplace activity.</p>
+          <p>Actual completed meetup sales. Amounts are recorded in PHP.</p>
         </div>
-        <button type="button">
-          <i className="ti ti-download" />
+        <button disabled={result.loading || !!result.error} onClick={download}>
           Export report
         </button>
       </div>
-
+      {result.error && <p role="alert">{result.error}</p>}
+      {result.loading && <p>Loading analytics...</p>}
       <div className="analytics-stats">
-        {stats.map(([label, value, growth, icon, tone]) => (
+        {[
+          ["Revenue", money(summary.revenue)],
+          ["Orders closed", summary.orders],
+          ["Average order value", money(summary.average)],
+        ].map(([label, value]) => (
           <article className="analytics-stat-card" key={label}>
-            <div className={`analytics-stat-icon bg-${tone}`}>
-              <i className={`ti ${icon}`} />
-            </div>
             <div>
               <p>{label}</p>
               <h2>{value}</h2>
-              <span>{growth} vs last month</span>
+              <span>All completed sales</span>
             </div>
           </article>
         ))}
       </div>
-
       <div className="analytics-grid">
-        <section className="analytics-panel analytics-sales-panel">
-          <div className="analytics-panel-heading">
-            <div>
-              <h2>Monthly Sales</h2>
-              <p>Revenue trend from completed marketplace transactions.</p>
-            </div>
-            <strong>PHP 25K</strong>
-          </div>
-          <div className="sales-chart" aria-label="Monthly sales chart">
-            {monthlySales.map(([month, value]) => (
-              <div className="sales-chart-bar" key={month}>
-                <span style={{ height: `${value}%` }} />
-                <small>{month}</small>
-              </div>
-            ))}
-          </div>
-        </section>
-
         <section className="analytics-panel">
-          <div className="analytics-panel-heading">
-            <div>
-              <h2>Category Revenue</h2>
-              <p>Top performing product groups.</p>
-            </div>
-          </div>
-          <div className="category-revenue-list">
-            {categories.map(([label, value, percent]) => (
-              <div className="category-revenue" key={label}>
-                <div>
-                  <span>{label}</span>
-                  <strong>{value}</strong>
-                </div>
-                <div className="analytics-meter">
-                  <span style={{ width: `${percent}%` }} />
-                </div>
+          <h2>Monthly sales</h2>
+          <div className="sales-chart">
+            {monthly.map((m) => (
+              <div
+                className="sales-chart-bar"
+                key={m.month}
+                title={money(m.revenue)}
+              >
+                <span
+                  style={{ height: `${(Number(m.revenue) / maximum) * 100}%` }}
+                />
+                <small>{m.month}</small>
               </div>
             ))}
           </div>
+          {!monthly.length && (
+            <p>
+              No completed sales yet. Complete a confirmed meetup to record a
+              sale.
+            </p>
+          )}
         </section>
-      </div>
-
-      <div className="analytics-grid secondary">
         <section className="analytics-panel">
-          <div className="analytics-panel-heading">
-            <div>
-              <h2>Buyer Funnel</h2>
-              <p>How shoppers move from interest to completed sales.</p>
+          <h2>Category revenue</h2>
+          {categories.map((c) => (
+            <div className="category-revenue" key={c.title}>
+              <strong>{c.title}</strong>
+              <span>{money(c.revenue)}</span>
             </div>
-          </div>
-          <div className="funnel-list">
-            {funnel.map(([label, value, percent]) => (
-              <div className="funnel-step" key={label}>
-                <div>
-                  <span>{label}</span>
-                  <strong>{value}</strong>
-                </div>
-                <div className="analytics-meter">
-                  <span style={{ width: `${percent}%` }} />
-                </div>
-              </div>
-            ))}
-          </div>
-        </section>
-
-        <section className="analytics-panel analytics-target-panel">
-          <div className="analytics-ring" aria-label="Monthly target progress">
-            <span>72%</span>
-          </div>
-          <div>
-            <h2>Monthly Target</h2>
-            <p>You reached 72% of this month&apos;s PHP 35,000 revenue goal.</p>
-          </div>
+          ))}
+          {!categories.length && <p>No category revenue yet.</p>}
         </section>
       </div>
     </>
   );
 }
-
-export default SalesAnalytics;

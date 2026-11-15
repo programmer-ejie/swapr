@@ -6,12 +6,22 @@ import { DatabaseService } from './database/database.service.js';
 import { createObserveModule } from '@nestjs/observe';
 import { AppController } from './app.controller.js';
 import { AppService } from './app.service.js';
+import { APP_GUARD } from '@nestjs/core';
+import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
+import { AuthService } from './auth.service.js';
+import { AuthController } from './auth.controller.js';
+import { SessionGuard } from './session.guard.js';
+import { MarketplaceController } from './marketplace.controller.js';
+import { MarketplaceService } from './marketplace.service.js';
+import { ImagesService } from './images.service.js';
+import { databaseOptions } from '../scripts/database-options.mjs';
 
 export const { ObserveModule, ObserveInstrument } = createObserveModule();
 
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
+    ThrottlerModule.forRoot([{ ttl: 60000, limit: 240 }]),
     DrizzleModule.forRootAsync({
       inject: [ConfigService],
       useFactory: (config: ConfigService) => {
@@ -24,7 +34,7 @@ export const { ObserveModule, ObserveInstrument } = createObserveModule();
         return {
           drizzle,
           connection: {
-            connectionString,
+            ...databaseOptions(connectionString),
             max: 5,
             connectionTimeoutMillis: 10000,
           },
@@ -40,7 +50,15 @@ export const { ObserveModule, ObserveInstrument } = createObserveModule();
       serviceId: 'swapr-backend',
     }),
   ],
-  controllers: [AppController],
-  providers: [AppService, DatabaseService],
+  controllers: [AppController, AuthController, MarketplaceController],
+  providers: [
+    AppService,
+    DatabaseService,
+    AuthService,
+    SessionGuard,
+    MarketplaceService,
+    ImagesService,
+    { provide: APP_GUARD, useClass: ThrottlerGuard },
+  ],
 })
 export class AppModule {}

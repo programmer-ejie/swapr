@@ -1,71 +1,68 @@
-# Getting Started with Create React App
+# Swapr web
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+React marketplace connected to the NestJS API and Supabase PostgreSQL.
+The Expo app is separate and is not part of this integration.
 
-## Available Scripts
+## Run locally
 
-In the project directory, you can run:
+Start the backend first:
 
-### `npm start`
+```sh
+cd swapr-backend
+npm install
+# Set DATABASE_URL in .env using .env.example
+npm run db:migrate
+npm run dev
+```
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+In another terminal, from the repository root:
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+```sh
+cd swapr-web
+npm install
+npm run dev
+```
 
-### `npm test`
+Open http://localhost:3000. Browser API requests use `/api` on the web origin. The development web server
+forwards these requests to NestJS at http://127.0.0.1:4000.
+Override it with `REACT_APP_API_URL` in `.env` (see `.env.example`), then restart
+the web server. Use `localhost` consistently rather than mixing it with `127.0.0.1`.
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+## Try the marketplace
 
-### `npm run build`
+1. Register with an email and a password of at least 8 characters, then log in.
+2. Dismiss the welcome message and complete your profile. Middle name is optional.
+3. Save your shop settings and add a listing from **My Shop**. Photos accept PNG,
+   JPEG or WebP up to 2 MB. Drafts are only visible to their owner.
+4. Open a second browser profile or private window and create a buyer account.
+5. Browse categories, save a listing, or choose **Chat seller**.
+6. Send messages and propose a public meetup with an agreed price.
+7. The other participant confirms the meetup. After the in-person exchange, the
+   seller chooses **Complete sale**. This reduces stock and updates sales analytics.
+8. View private notifications or export the sales summary as CSV.
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+Listings and sales start empty. Sample product, chat and sales records are not
+used. Public listing cards prompt guests to log in before saving or messaging.
+Sessions are verified with the backend on refresh; local storage is not an
+authentication credential. Logging out revokes the server session.
+Chat refreshes every 3 seconds. Subscription emails are stored, but sending
+newsletters, password resets, and email verification are not configured.
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+## Checks
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+```sh
+npm test -- --watchAll=false --runInBand
+npm run build
+```
 
-### `npm run eject`
+Production hosting must serve `index.html` for `/user/*` routes. Configure
+`REACT_APP_API_URL` at build time and the backend's `WEB_ORIGIN` to the actual web
+origin. Use HTTPS and the same site for web/API so the HttpOnly session cookie works.
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+Product and profile photos are uploaded to ImgBB through NestJS. The product form
+also includes a picker for the existing hosted product photo library. Public URLs
+are listed in `src/product-images.json`; the ImgBB key exists only in the backend.
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
-
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
-
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
-
-## Learn More
-
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
-
-### Code Splitting
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
-
-### Analyzing the Bundle Size
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
-# Swapr
+For a production build, route `/api/*` to NestJS and strip the `/api` prefix, or
+set `REACT_APP_API_URL` to the deployed API origin before building. The local
+`src/setupProxy.js` proxy runs only with `npm run dev`.

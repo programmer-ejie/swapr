@@ -1,115 +1,132 @@
-import { useState } from 'react';
-import product1 from './assets/images/product-1.webp';
-import product2 from './assets/images/product-2.webp';
-import product4 from './assets/images/product-4.webp';
+import productImages from "../product-images.json";
+import { FormEvent, useState } from "react";
+import { api, Category, errorMessage, Listing, readImage } from "../api";
+import { useApi } from "../useApi";
+import ListingCards from "./ListingCards";
 
-const myProducts = [
-  {
-    name: 'Gaming Joy Stick',
-    price: 'PHP 520.87',
-    oldPrice: 'PHP 690.00',
-    tag: 'Live',
-    quantity: 3,
-    condition: 'Good',
-    location: 'Manila',
-    image: product1,
-  },
-  {
-    name: 'Wireless Earphones',
-    price: 'PHP 430.75',
-    tag: 'Draft',
-    quantity: 8,
-    condition: 'Like new',
-    location: 'Makati',
-    image: product2,
-  },
-  {
-    name: 'USB-C Fast Charger',
-    price: 'PHP 349.50',
-    quantity: 12,
-    condition: 'New open box',
-    location: 'Pasig',
-    image: product4,
-  },
-];
-
-interface MyShopProps {
-  searchQuery?: string;
-}
-
-function MyShop({ searchQuery = '' }: MyShopProps) {
-  const [activeShopTab, setActiveShopTab] = useState<'workspace' | 'products'>('workspace');
-  const [productOffcanvasOpen, setProductOffcanvasOpen] = useState(false);
-  const [productOffcanvasClosing, setProductOffcanvasClosing] = useState(false);
-  const [productImagePreview, setProductImagePreview] = useState('');
-  const productOffcanvasVisible = productOffcanvasOpen || productOffcanvasClosing;
-  const visibleMyProducts = myProducts.filter((product) =>
-    `${product.name} ${product.condition} ${product.location} ${product.tag ?? ''}`
-      .toLowerCase()
-      .includes(searchQuery.trim().toLowerCase())
-  );
-
-  const openProductOffcanvas = () => {
-    setProductOffcanvasClosing(false);
-    setProductOffcanvasOpen(true);
+type Shop = { name: string; city: string; description: string };
+const blank = {
+  name: "",
+  description: "",
+  category: "",
+  price: 0,
+  quantity: 1,
+  condition: "Good",
+  location: "",
+  image: "",
+  status: "live",
+};
+export default function MyShop({ searchQuery = "" }: { searchQuery?: string }) {
+  const result = useApi<{
+    shop: Shop | null;
+    stats: { listings: number; chats: number; meetups: number };
+  }>("/shop", { shop: null, stats: { listings: 0, chats: 0, meetups: 0 } });
+  const listings = useApi<{ listings: Listing[] }>("/shop/listings", {
+    listings: [],
+  });
+  const categories = useApi<{ categories: Category[] }>("/categories", {
+    categories: [],
+  });
+  const [tab, setTab] = useState("workspace");
+  const [editor, setEditor] = useState(false);
+  const [editingId, setEditingId] = useState("");
+  const [draft, setDraft] = useState(blank);
+  const [busy, setBusy] = useState(false);
+  const [message, setMessage] = useState("");
+  const [error, setError] = useState("");
+  const run = async (action: () => Promise<void>) => {
+    setBusy(true);
+    setError("");
+    setMessage("");
+    try {
+      await action();
+    } catch (e) {
+      setError(errorMessage(e));
+    } finally {
+      setBusy(false);
+    }
   };
-
-  const closeProductOffcanvas = () => {
-    setProductOffcanvasClosing(true);
-    setProductOffcanvasOpen(false);
-    window.setTimeout(() => {
-      setProductOffcanvasClosing(false);
-      setProductImagePreview('');
-    }, 260);
+  const saveShop = (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const form = new FormData(e.currentTarget);
+    void run(async () => {
+      await api("/shop", {
+        method: "PUT",
+        body: JSON.stringify({
+          name: form.get("name"),
+          city: form.get("city"),
+          description: form.get("description"),
+        }),
+      });
+      result.reload();
+      setMessage("Shop saved.");
+    });
   };
-
+  const saveListing = (e: FormEvent) => {
+    e.preventDefault();
+    void run(async () => {
+      await api(editingId ? `/listings/${editingId}` : "/listings", {
+        method: editingId ? "PATCH" : "POST",
+        body: JSON.stringify(draft),
+      });
+      setEditor(false);
+      setTab("products");
+      listings.reload();
+      result.reload();
+      setMessage("Listing saved.");
+    });
+  };
   return (
     <>
       <div className="shop-hero">
         <div>
           <span className="shop-kicker">Seller workspace</span>
           <h1>My Shop</h1>
-          <p>Manage your public profile, meetup preferences, and active listings.</p>
+          <p>Manage your shop and real marketplace listings.</p>
         </div>
-        <button className="shop-add-button" type="button" onClick={openProductOffcanvas}>
-          <i className="ti ti-plus" />
+        <button
+          className="shop-add-button"
+          type="button"
+          onClick={() => {
+            setDraft({ ...blank, location: result.data.shop?.city || "" });
+            setEditingId("");
+            setEditor(true);
+            setError("");
+          }}
+        >
           Add product
         </button>
       </div>
-
-      <div className="shop-tabs" role="tablist" aria-label="Shop sections">
+      <div className="shop-tabs">
         <button
-          className={activeShopTab === 'workspace' ? 'active' : ''}
-          type="button"
-          role="tab"
-          aria-selected={activeShopTab === 'workspace'}
-          onClick={() => setActiveShopTab('workspace')}
+          className={tab === "workspace" ? "active" : ""}
+          onClick={() => setTab("workspace")}
         >
-          <i className="ti ti-layout-dashboard" />
           Shop Workspace
         </button>
         <button
-          className={activeShopTab === 'products' ? 'active' : ''}
-          type="button"
-          role="tab"
-          aria-selected={activeShopTab === 'products'}
-          onClick={() => setActiveShopTab('products')}
+          className={tab === "products" ? "active" : ""}
+          onClick={() => setTab("products")}
         >
-          <i className="ti ti-box-seam" />
           My Products
         </button>
       </div>
-
-      {activeShopTab === 'workspace' ? (
+      {(error || result.error || listings.error || categories.error) && (
+        <p className="api-error" role="alert">
+          {error || result.error || listings.error || categories.error}
+        </p>
+      )}
+      {message && <p role="status">{message}</p>}
+      {(result.loading || listings.loading) && <p>Loading shop...</p>}
+      {tab === "workspace" ? (
         <>
           <div className="shop-stats">
             {[
-              ['Active listings', '32', 'ti-box-seam'],
-              ['Buyer chats', '94', 'ti-message-circle'],
-              ['Meetups pending', '18', 'ti-calendar-time'],
-            ].map(([label, value, icon]) => (
+              ["Active listings", result.data.stats.listings],
+              ["Buyer chats", result.data.stats.chats],
+              ["Meetups pending", result.data.stats.meetups],
+            ].map(([label, value]) => (
               <div className="shop-stat" key={label}>
-                <i className={`ti ${icon}`} />
                 <div>
                   <strong>{value}</strong>
                   <span>{label}</span>
@@ -117,192 +134,279 @@ function MyShop({ searchQuery = '' }: MyShopProps) {
               </div>
             ))}
           </div>
-
-          <div className="shop-layout">
-            <section className="shop-panel">
-              <div className="shop-panel-heading">
-                <div>
-                  <h2>Shop Information</h2>
-                  <p>These details appear on your public seller profile.</p>
-                </div>
-                <span>Public</span>
-              </div>
-              <div className="row g-3">
-                <div className="col-md-6">
-                  <label className="form-label">Shop name</label>
-                  <input className="form-control" defaultValue="Swapr Finds" />
-                </div>
-                <div className="col-md-6">
-                  <label className="form-label">Meetup city</label>
-                  <input className="form-control" defaultValue="Manila" />
-                </div>
-                <div className="col-12">
-                  <label className="form-label">Description</label>
-                  <textarea className="form-control" rows={4} defaultValue="Ukay treasures and preloved favorites. Honest condition notes, fair prices, and local meetups." />
-                </div>
-              </div>
-            </section>
-
-            <aside className="shop-status-card">
-              <div className="shop-status-icon">
-                <i className="ti ti-building-store" />
-              </div>
-              <h2>Shop Status</h2>
-              <p>Active seller profile</p>
-              <div className="shop-status-meter">
-                <span style={{ width: '82%' }} />
-              </div>
-              <small>Profile strength: 82%</small>
-            </aside>
-          </div>
-        </>
-      ) : (
-        <section className="shop-products-section">
-          <div className="shop-panel-heading">
-            <div>
-              <h2>My Products</h2>
-              <p>Listings you created and manage in your shop.</p>
-            </div>
-          </div>
-
-          <div className="user-product-grid">
-            {visibleMyProducts.map((product) => (
-              <article className="user-product-card" key={product.name}>
-                {product.tag && <span className="user-product-tag">{product.tag}</span>}
-                <button className="user-favorite-button" type="button" aria-label={`Save ${product.name}`}>
-                  <i className="ti ti-heart" />
-                </button>
-                <div className="user-product-image">
-                  <img src={product.image} alt={product.name} />
-                </div>
-                <div className="user-product-info">
-                  <h2>{product.name}</h2>
-                  <p>
-                    {product.price}
-                    {product.oldPrice && <span>{product.oldPrice}</span>}
-                  </p>
-                  <div className="user-product-meta" aria-label={`${product.name} details`}>
-                    <span title="Quantity available">
-                      <i className="ti ti-package" />
-                      {product.quantity}
-                    </span>
-                    <span title="Condition">
-                      <i className="ti ti-sparkles" />
-                      {product.condition}
-                    </span>
-                    <span title="Meetup location">
-                      <i className="ti ti-map-pin" />
-                      {product.location}
-                    </span>
-                  </div>
-                </div>
-                <button className="user-chat-button" type="button">
-                  Manage listing
-                </button>
-              </article>
-            ))}
-          </div>
-          {visibleMyProducts.length === 0 && (
-            <div className="empty-products">
-              <div className="empty-products-icon">
-                <i className="ti ti-box-off" />
-              </div>
-              <h2>No matching products</h2>
-              <p>Try searching by product name, condition, location, or listing status.</p>
-            </div>
-          )}
-        </section>
-      )}
-
-      {productOffcanvasVisible && (
-        <>
-          <div
-            className={`shop-offcanvas-backdrop ${productOffcanvasClosing ? 'closing' : ''}`}
-            onClick={closeProductOffcanvas}
-          />
-          <aside className={`shop-offcanvas ${productOffcanvasClosing ? 'closing' : ''}`} aria-label="Add product form">
-            <div className="shop-offcanvas-header">
-              <div>
-                <h2>Add product</h2>
-                <p>Create a marketplace listing for meetup buyers.</p>
-              </div>
-              <button type="button" aria-label="Close add product form" onClick={closeProductOffcanvas}>
-                <i className="ti ti-x" />
-              </button>
-            </div>
-            <form className="shop-product-form">
-              <div className="shop-product-tip">
-                <i className="ti ti-bulb" />
-                <div>
-                  <strong>Listing tip</strong>
-                  <span>Use a clear real photo, honest condition notes, and a public meetup location.</span>
-                </div>
-              </div>
-              <label className="shop-photo-field">
-                Product photo
-                <span className="shop-photo-preview">
-                  {productImagePreview ? (
-                    <img src={productImagePreview} alt="Selected product preview" />
-                  ) : (
-                    <i className="ti ti-photo-plus" />
-                  )}
-                  <span className="shop-photo-action">
-                    <i className="ti ti-camera-plus" />
-                    Upload photo
-                  </span>
-                </span>
+          {result.data.shop && (
+            <form
+              className="shop-panel shop-product-form"
+              key={JSON.stringify(result.data.shop)}
+              onSubmit={saveShop}
+            >
+              <h2>Shop information</h2>
+              <label>
+                Shop name
                 <input
                   className="form-control"
-                  type="file"
-                  accept="image/*"
-                  onChange={(event) => {
-                    const file = event.target.files?.[0];
-                    setProductImagePreview(file ? URL.createObjectURL(file) : '');
-                  }}
+                  name="name"
+                  maxLength={120}
+                  defaultValue={result.data.shop.name}
                 />
               </label>
               <label>
+                Meetup city
+                <input
+                  className="form-control"
+                  name="city"
+                  maxLength={160}
+                  defaultValue={result.data.shop.city}
+                />
+              </label>
+              <label>
+                Description
+                <textarea
+                  className="form-control"
+                  name="description"
+                  maxLength={2000}
+                  defaultValue={result.data.shop.description}
+                />
+              </label>
+              <button className="shop-submit-button" disabled={busy}>
+                Save shop
+              </button>
+            </form>
+          )}
+        </>
+      ) : (
+        <ListingCards
+          listings={listings.data.listings.filter((l) =>
+            `${l.name} ${l.status} ${l.location}`
+              .toLowerCase()
+              .includes(searchQuery.toLowerCase()),
+          )}
+          onEdit={(l) => {
+            setEditingId(l.id);
+            setDraft({
+              name: l.name,
+              description: l.description,
+              category: l.category,
+              price: Number(l.price),
+              quantity: Math.max(1, l.quantity),
+              condition: l.condition,
+              location: l.location,
+              image: l.image,
+              status: l.status === "draft" ? "draft" : "live",
+            });
+            setEditor(true);
+            setError("");
+          }}
+        />
+      )}
+      {editor && (
+        <>
+          <div
+            className="shop-offcanvas-backdrop"
+            onClick={() => !busy && setEditor(false)}
+          />
+          <aside className="shop-offcanvas" aria-label="Listing editor">
+            <div className="shop-offcanvas-header">
+              <h2>{editingId ? "Manage listing" : "Add product"}</h2>
+              <button
+                type="button"
+                disabled={busy}
+                onClick={() => setEditor(false)}
+                aria-label="Close listing editor"
+              >
+                &times;
+              </button>
+            </div>
+            <form className="shop-product-form" onSubmit={saveListing}>
+              <label>
+                Photo (PNG, JPEG or WebP, up to 2 MB)
+                {draft.image && (
+                  <img
+                    className="listing-preview"
+                    src={draft.image}
+                    alt="Listing preview"
+                  />
+                )}
+                <input
+                  className="form-control"
+                  type="file"
+                  accept="image/png,image/jpeg,image/webp"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file)
+                      void run(async () => {
+                        const image = await readImage(file);
+                        setDraft((d) => ({ ...d, image }));
+                      });
+                  }}
+                />
+              </label>
+              <details className="product-image-library">
+                <summary>Choose an existing product photo</summary>
+                <div className="product-image-options">
+                  {Object.entries(productImages)
+                    .filter(([path]) => !path.includes("default_product"))
+                    .map(([path, url]) => (
+                      <button
+                        key={path}
+                        type="button"
+                        disabled={busy}
+                        aria-label={`Use ${path.split("/").pop()}`}
+                        aria-pressed={draft.image === url}
+                        onClick={() => setDraft({ ...draft, image: url })}
+                      >
+                        <img
+                          loading="lazy"
+                          src={url}
+                          alt={path.split("/").pop()}
+                        />
+                      </button>
+                    ))}
+                </div>
+              </details>
+              <label>
                 Product name
-                <input className="form-control" placeholder="Preloved denim jacket" />
+                <input
+                  className="form-control"
+                  required
+                  maxLength={160}
+                  value={draft.name}
+                  onChange={(e) => setDraft({ ...draft, name: e.target.value })}
+                />
               </label>
               <label>
                 Category
-                <select className="form-select" defaultValue="">
-                  <option value="" disabled>
-                    Select category
-                  </option>
-                  <option>Electronics</option>
-                  <option>Fashion</option>
-                  <option>Home Goods</option>
-                  <option>Accessories</option>
+                <select
+                  className="form-select"
+                  required
+                  value={draft.category}
+                  onChange={(e) =>
+                    setDraft({ ...draft, category: e.target.value })
+                  }
+                >
+                  <option value="">Select category</option>
+                  {categories.data.categories.map((c) => (
+                    <option key={c.slug} value={c.slug}>
+                      {c.title}
+                    </option>
+                  ))}
                 </select>
               </label>
               <div className="shop-form-grid">
                 <label>
-                  Price
-                  <input className="form-control" placeholder="PHP 520.00" />
+                  Price (PHP)
+                  <input
+                    className="form-control"
+                    required
+                    type="number"
+                    min="0"
+                    max="9999999999.99"
+                    step="0.01"
+                    value={draft.price}
+                    onChange={(e) =>
+                      setDraft({ ...draft, price: Number(e.target.value) })
+                    }
+                  />
                 </label>
                 <label>
                   Quantity
-                  <input className="form-control" type="number" min="1" placeholder="1" />
+                  <input
+                    className="form-control"
+                    required
+                    type="number"
+                    min="1"
+                    max="100000"
+                    value={draft.quantity}
+                    onChange={(e) =>
+                      setDraft({ ...draft, quantity: Number(e.target.value) })
+                    }
+                  />
                 </label>
               </div>
               <label>
                 Condition
-                <select className="form-select" defaultValue="Good">
-                  <option>Like new</option>
-                  <option>Excellent</option>
-                  <option>Good</option>
-                  <option>Used</option>
+                <select
+                  className="form-select"
+                  value={draft.condition}
+                  onChange={(e) =>
+                    setDraft({ ...draft, condition: e.target.value })
+                  }
+                >
+                  {[
+                    "Like new",
+                    "Excellent",
+                    "Good",
+                    "Used",
+                    "New open box",
+                  ].map((c) => (
+                    <option key={c}>{c}</option>
+                  ))}
                 </select>
               </label>
               <label>
-                Description
-                <textarea className="form-control" rows={4} placeholder="Describe condition, inclusions, and meetup notes." />
+                Meetup location
+                <input
+                  className="form-control"
+                  required
+                  maxLength={160}
+                  value={draft.location}
+                  onChange={(e) =>
+                    setDraft({ ...draft, location: e.target.value })
+                  }
+                />
               </label>
-              <button className="shop-submit-button" type="button" onClick={closeProductOffcanvas}>
-                Publish listing
+              <label>
+                Description
+                <textarea
+                  className="form-control"
+                  maxLength={4000}
+                  value={draft.description}
+                  onChange={(e) =>
+                    setDraft({ ...draft, description: e.target.value })
+                  }
+                />
+              </label>
+              <label>
+                Status
+                <select
+                  className="form-select"
+                  value={draft.status}
+                  onChange={(e) =>
+                    setDraft({ ...draft, status: e.target.value })
+                  }
+                >
+                  <option value="live">Live</option>
+                  <option value="draft">Draft</option>
+                </select>
+              </label>
+              {error && <p role="alert">{error}</p>}
+              <button className="shop-submit-button" disabled={busy}>
+                {busy ? "Saving..." : "Save listing"}
               </button>
+              {editingId && (
+                <button
+                  type="button"
+                  className="btn btn-outline-danger"
+                  disabled={busy}
+                  onClick={() => {
+                    if (
+                      window.confirm(
+                        "Archive this listing? It will be hidden from the marketplace.",
+                      )
+                    )
+                      void run(async () => {
+                        await api(`/listings/${editingId}`, {
+                          method: "DELETE",
+                        });
+                        setEditor(false);
+                        listings.reload();
+                        result.reload();
+                      });
+                  }}
+                >
+                  Archive listing
+                </button>
+              )}
             </form>
           </aside>
         </>
@@ -310,5 +414,3 @@ function MyShop({ searchQuery = '' }: MyShopProps) {
     </>
   );
 }
-
-export default MyShop;
