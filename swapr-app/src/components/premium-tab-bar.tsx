@@ -6,7 +6,7 @@ import { AppIcon, type IconName } from './app-icon';
 import { useAppTheme } from './app-theme';
 
 type Props = Parameters<NonNullable<ComponentProps<typeof Tabs>['tabBar']>>[0];
-const icons: Record<string,IconName> = {discover:'discover',items:'items',matches:'swap',chats:'chat',profile:'profile'};
+const icons: Record<string,IconName> = {discover:'discover',items:'items',matches:'bag',chats:'chat',profile:'profile'};
 
 export function PremiumTabBar({state,descriptors,emitter,navigateToTab}:Props) {
   const {colors,isDark}=useAppTheme();

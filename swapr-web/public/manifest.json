@@ -1,0 +1,22 @@
+{
+  "short_name": "Swapr",
+  "name": "Swapr — Ukay & Preloved Finds",
+  "icons": [
+    {
+      "src": "swapr-genz-icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "swapr-genz-icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ],
+  "start_url": ".",
+  "display": "standalone",
+  "theme_color": "#000000",
+  "background_color": "#ffffff"
+}

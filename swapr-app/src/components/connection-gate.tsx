@@ -1,3 +1,4 @@
+import { BrandLogo } from './brand-logo';
 import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
 import { Animated, AppState, Easing, Modal, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -44,7 +45,7 @@ export function ConnectionGate({children}:{children:ReactNode}){
    {children}
    <Modal visible={open} animationType={reduced?'none':'fade'} onRequestClose={()=>setOpen(false)} statusBarTranslucent>
      <SafeAreaView style={[s.screen,{backgroundColor:colors.background}]}>
-       <Text style={[s.brand,{color:colors.primary}]}>swapr<Text style={{color:colors.coral}}>.</Text></Text>
+       <BrandLogo/>
        <View style={s.center}>
          <View style={s.mark}>
            <Animated.View style={[s.orbit,{borderColor:colors.border,transform:[{rotate:motion.interpolate({inputRange:[0,1],outputRange:['0deg','360deg']})}]}]}><View style={[s.dot,{backgroundColor:colors.coral}]}/></Animated.View>

@@ -1,3 +1,4 @@
+import { BrandLogo } from './brand-logo';
 import { useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -12,21 +13,21 @@ export function LoginScreen(){
  return <SafeAreaView style={[s.safe,{backgroundColor:c.background}]}><View style={s.shell}>
   <View style={s.header}>
    <Pressable accessibilityRole="button" accessibilityLabel="Back to welcome" style={[s.round,{borderColor:c.border}]} onPress={()=>router.replace('/welcome')}><AppIcon name="back" size={20} color={c.text}/></Pressable>
-   <Text style={[s.logo,{color:c.primary}]}>swapr<Text style={{color:c.coral}}>.</Text></Text>
+   <BrandLogo compact/>
    <Pressable accessibilityRole="button" accessibilityLabel={isDark?'Switch to light mode':'Switch to dark mode'} style={[s.round,{borderColor:c.border}]} onPress={toggle}><AppIcon name={isDark?'sun':'moon'} size={20} color={c.text}/></Pressable>
   </View>
   <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={s.content}>
    <View style={[s.visual,{backgroundColor:c.mint}]}>
     <View style={[s.orbit,{borderColor:c.primary}]}/><View style={[s.orbit,s.smallOrbit,{borderColor:c.primary}]}/>
-    <View style={[s.photo,s.leftPhoto,{backgroundColor:c.surface,borderColor:c.border}]}><ItemPhoto title="Everyday headphones"/></View>
-    <View style={[s.photo,s.rightPhoto,{backgroundColor:c.surface,borderColor:c.border}]}><ItemPhoto title="Mirrorless camera"/></View>
-    <View style={[s.swapMark,{backgroundColor:c.primary,borderColor:c.mint}]}><AppIcon name="swap" size={24} color={c.background}/></View>
+    <View style={[s.photo,s.leftPhoto,{backgroundColor:c.surface,borderColor:c.border}]}><ItemPhoto title="Everyday denim jacket"/></View>
+    <View style={[s.photo,s.rightPhoto,{backgroundColor:c.surface,borderColor:c.border}]}><ItemPhoto title="Everyday backpack"/></View>
+    <View style={[s.swapMark,{backgroundColor:c.primary,borderColor:c.mint}]}><AppIcon name="bag" size={24} color={c.background}/></View>
     <View style={[s.visualTag,{backgroundColor:c.surface,borderColor:c.border}]}><View style={[s.dot,{backgroundColor:c.coral}]}/><Text style={[s.tagText,{color:c.text}]}>A little less new. A little more you.</Text></View>
    </View>
    <View style={s.intro}>
-    <Text style={[s.eyebrow,{color:c.primary}]}>YOUR NEXT CHAPTER, SWAPPED.</Text>
-    <Text accessibilityRole="header" style={[s.title,{color:c.text}]}>Good finds.{'\n'}<Text style={{color:c.primary}}>Better connections.</Text></Text>
-    <Text style={[s.description,{color:c.muted}]}>Your next great swap starts with an email account.</Text>
+    <Text style={[s.eyebrow,{color:c.primary}]}>UKAY TREASURES. PRELOVED FINDS.</Text>
+    <Text accessibilityRole="header" style={[s.title,{color:c.text}]}>Good finds.{'\n'}<Text style={{color:c.primary}}>Better prices.</Text></Text>
+    <Text style={[s.description,{color:c.muted}]}>Sign in to discover affordable finds, message sellers, and list your preloved favorites.</Text>
    </View>
    <View style={[s.card,{backgroundColor:c.surface,borderColor:c.border,shadowColor:c.primary}]}>
     <View style={s.cardHeading}><View style={[s.mailBadge,{backgroundColor:c.mint}]}><AppIcon name="mail" size={21} color={c.primary}/></View><View style={{flex:1,gap:4}}><Text style={[s.cardTitle,{color:c.text}]}>{choosing?'Choose your account':'Your way in'}</Text><Text style={[s.caption,{color:c.muted}]}>{choosing?'Sample account for this preview':'One email. No extra passwords.'}</Text></View></View>
@@ -41,7 +42,7 @@ export function LoginScreen(){
      <Text style={[s.cardFoot,{color:c.muted}]}>New to Swapr? Your profile begins with your first sign-in.</Text>
     </>}
    </View>
-   <View style={s.bottomNote}><View style={[s.noteLine,{backgroundColor:c.border}]}/><Text style={[s.eyebrow,{color:c.muted}]}>LESS BUYING. MORE FINDING.</Text><View style={[s.noteLine,{backgroundColor:c.border}]}/></View>
+   <View style={s.bottomNote}><View style={[s.noteLine,{backgroundColor:c.border}]}/><Text style={[s.eyebrow,{color:c.muted}]}>BUY PRELOVED. SELL YOUR FAVORITES.</Text><View style={[s.noteLine,{backgroundColor:c.border}]}/></View>
    <Text style={[s.previewNote,{color:c.muted}]}>Demo account only. Email authentication is not connected yet.</Text>
   </ScrollView>
  </View></SafeAreaView>;

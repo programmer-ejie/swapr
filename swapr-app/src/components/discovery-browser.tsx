@@ -5,22 +5,23 @@ import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-
 import { AppIcon, type IconName } from './app-icon';
 
 export const availableItems = [
-  { title: 'Mirrorless camera', category: 'Electronics', distance: '1.2 km', value: '₱500 – ₱1,499' },
-  { title: 'Everyday denim jacket', category: 'Fashion', distance: '2.4 km', value: '₱500 – ₱1,499' },
-  { title: 'Weekend cruiser', category: 'Outdoors', distance: '3.1 km', value: '₱500 – ₱1,499' },
-  { title: 'Minimal desk lamp', category: 'Home', distance: '1.8 km', value: '₱100 – ₱499' },
-  { title: 'A little library', category: 'Books & media', distance: '0.8 km', value: '₱100 – ₱499' },
-  { title: 'Studio headphones', category: 'Electronics', distance: '2.1 km', value: '₱1,500 – ₱4,999' },
+  { title: 'Everyday denim jacket', category: 'Ukay fashion', distance: '2.4 km', value: '₱350' },
+  { title: 'Everyday backpack', category: 'Bags & accessories', distance: '1.1 km', value: '₱280' },
+  { title: 'Mirrorless camera', category: 'Electronics', distance: '1.2 km', value: '₱650' },
+  { title: 'Weekend cruiser', category: 'Outdoors', distance: '3.1 km', value: '₱650' },
+  { title: 'Minimal desk lamp', category: 'Home', distance: '1.8 km', value: '₱250' },
+  { title: 'A little library', category: 'Books & media', distance: '0.8 km', value: '₱250' },
+  { title: 'Studio headphones', category: 'Electronics', distance: '2.1 km', value: '₱1,500' },
 ];
 const categories: {label:string;icon:IconName}[] = [
   {label:'All',icon:'items'}, {label:'Electronics',icon:'headphones'},
-  {label:'Fashion',icon:'shirt'}, {label:'Outdoors',icon:'bike'},
+  {label:'Ukay fashion',icon:'shirt'}, {label:'Bags & accessories',icon:'bag'}, {label:'Outdoors',icon:'bike'},
   {label:'Home',icon:'home'}, {label:'Books & media',icon:'books'},
 ];
 
 export function DiscoveryBrowser({children,onSelect}:{children:ReactNode;onSelect:(index:number)=>void}) {
  const {colors:palette}=useAppTheme(); const styles=useStyles();
-  const [mode,setMode] = useState<'Discover'|'List'>('Discover');
+  const [mode,setMode] = useState<'Discover'|'List'>('List');
   const [category,setCategory] = useState('All');
   const [query,setQuery] = useState('');
   const matches = availableItems.map((item,index)=>({...item,index})).filter(item=>
@@ -36,10 +37,10 @@ export function DiscoveryBrowser({children,onSelect}:{children:ReactNode;onSelec
       </Pressable>)}
     </View>
     {mode==='Discover'?children:<>
-      <View style={{gap:6}}><Text style={styles.heading}>Find your kind of thing.</Text><Text style={styles.caption}>Browse available items from your local circle.</Text></View>
+      <View style={{gap:6}}><Text style={styles.heading}>Ukay treasures. Preloved finds.</Text><Text style={styles.caption}>Shop affordable ukay-ukay, everyday essentials, and preloved favorites near you.</Text></View>
       <View style={styles.search}>
         <AppIcon name="search" size={21}/>
-        <TextInput accessibilityLabel="Search available items" placeholder="Search items or categories" placeholderTextColor={palette.muted} value={query} onChangeText={setQuery} style={styles.searchInput} returnKeyType="search"/>
+        <TextInput accessibilityLabel="Search available items" placeholder="Search ukay, preloved items or categories" placeholderTextColor={palette.muted} value={query} onChangeText={setQuery} style={styles.searchInput} returnKeyType="search"/>
         {query!==''&&<Pressable accessibilityLabel="Clear search" hitSlop={10} onPress={()=>setQuery('')}><AppIcon name="close" size={18}/></Pressable>}
       </View>
       <View style={{gap:12}}><View style={styles.between}><Text style={styles.label}>ITEM TYPE</Text>{(category!=='All'||query!=='')&&<Pressable accessibilityRole="button" onPress={reset}><Text style={styles.reset}>Reset filters</Text></Pressable>}</View>

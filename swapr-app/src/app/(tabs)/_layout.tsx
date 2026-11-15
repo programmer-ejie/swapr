@@ -5,8 +5,8 @@ import { Tabs } from 'expo-router';
 import { AppIcon, type IconName } from '@/components/app-icon';
 const tabs: {name:string;title:string;icon:IconName}[] = [
 {name:'discover',title:'Discover',icon:'discover'},
-{name:'items',title:'My Items',icon:'items'},
-{name:'matches',title:'Matches',icon:'swap'},
+{name:'items',title:'My Shop',icon:'items'},
+{name:'matches',title:'Purchases',icon:'bag'},
 {name:'chats',title:'Chats',icon:'chat'},
 {name:'profile',title:'Profile',icon:'profile'},
 ];

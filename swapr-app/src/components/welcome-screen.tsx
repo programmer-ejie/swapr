@@ -1,3 +1,4 @@
+import { BrandLogo } from './brand-logo';
 import { Pressable, ScrollView, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
@@ -9,35 +10,35 @@ export function WelcomeScreen(){
  const {colors:c,isDark,toggle}=useAppTheme();
  const {width}=useWindowDimensions();
  const artWidth=Math.min(width-64,340);
- const steps:{icon:IconName;label:string}[]=[{icon:'camera',label:'List it'},{icon:'heart',label:'Match it'},{icon:'swap',label:'Swap it'}];
+ const steps:{icon:IconName;label:string}[]=[{icon:'camera',label:'List it'},{icon:'heart',label:'Find it'},{icon:'bag',label:'Buy it'}];
  return <SafeAreaView style={[s.safe,{backgroundColor:c.background}]}>
   <View style={s.shell}>
    <View style={s.header}>
-    <Text accessibilityLabel="Swapr" style={[s.logo,{color:c.primary}]}>swapr<Text style={{color:c.coral}}>.</Text></Text>
+    <BrandLogo/>
     <Pressable accessibilityRole="button" accessibilityLabel={isDark?'Switch to light mode':'Switch to dark mode'} onPress={toggle} style={[s.theme,{backgroundColor:c.mint}]}><AppIcon name={isDark?'sun':'moon'} color={c.primary} size={21}/></Pressable>
    </View>
    <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={s.content}>
     <View style={[s.art,{width:artWidth,height:artWidth*.77}]}>
      <View style={[s.halo,{backgroundColor:c.mint,width:artWidth*.72,height:artWidth*.72,borderRadius:artWidth}]}/>
      <View style={[s.photoCard,{backgroundColor:c.surface,borderColor:c.border,width:artWidth*.48,height:artWidth*.62,left:8,top:15,transform:[{rotate:'-11deg'}]}]}>
-      <View style={s.photo}><ItemPhoto title="Everyday headphones"/></View><Text style={[s.photoLabel,{color:c.text}]}>Your old favorite</Text>
+      <View style={s.photo}><ItemPhoto title="Everyday denim jacket"/></View><Text style={[s.photoLabel,{color:c.text}]}>Ukay treasures</Text>
      </View>
      <View style={[s.photoCard,{backgroundColor:c.surface,borderColor:c.border,width:artWidth*.48,height:artWidth*.62,right:8,top:35,transform:[{rotate:'10deg'}]}]}>
-      <View style={s.photo}><ItemPhoto title="Mirrorless camera"/></View><Text style={[s.photoLabel,{color:c.text}]}>Your next great find</Text>
+      <View style={s.photo}><ItemPhoto title="Everyday backpack"/></View><Text style={[s.photoLabel,{color:c.text}]}>Your next great find</Text>
      </View>
-     <View style={[s.swapBadge,{backgroundColor:c.primary,borderColor:c.background}]}><AppIcon name="swap" size={27} color={c.background}/></View>
+     <View style={[s.swapBadge,{backgroundColor:c.primary,borderColor:c.background}]}><AppIcon name="bag" size={27} color={c.background}/></View>
      <View style={[s.spark,{backgroundColor:c.coral}]}/>
     </View>
-    <View style={[s.pill,{backgroundColor:c.mint}]}><View style={[s.dot,{backgroundColor:c.primary}]}/><Text style={[s.eyebrow,{color:c.primary}]}>GOOD THINGS GO AROUND</Text></View>
-    <Text accessibilityRole="header" style={[s.title,{color:c.text}]}>Less stuff.{'\n'}<Text style={{color:c.primary}}>More possibility.</Text></Text>
-    <Text style={[s.description,{color:c.muted}]}>Trade what you have for something you?ll love.{'\n'}No cash. Just a good swap.</Text>
+    <View style={[s.pill,{backgroundColor:c.mint}]}><View style={[s.dot,{backgroundColor:c.primary}]}/><Text style={[s.eyebrow,{color:c.primary}]}>YOUR LOCAL PRELOVED MARKETPLACE</Text></View>
+    <Text accessibilityRole="header" style={[s.title,{color:c.text}]}>Ukay treasures.{'\n'}<Text style={{color:c.primary}}>Preloved finds.</Text></Text>
+    <Text style={[s.description,{color:c.muted}]}>Shop affordable ukay-ukay and preloved finds.{'\n'}Sell what deserves a second home.</Text>
     <View style={s.steps}>{steps.map((step,i)=><View key={step.label} style={s.stepGroup}>
       {i>0&&<View style={[s.connector,{backgroundColor:c.border}]}/>}
       <View style={s.step}><View style={[s.stepIcon,{backgroundColor:c.surface,borderColor:c.border}]}><AppIcon name={step.icon} size={21} color={c.primary}/></View><Text style={[s.stepText,{color:c.text}]}>{step.label}</Text></View>
     </View>)}</View>
    </ScrollView>
    <View style={[s.actions,{borderTopColor:c.border,backgroundColor:c.background}]}>
-    <Pressable accessibilityRole="button" onPress={()=>router.push('/login')} style={({pressed})=>[s.primary,{backgroundColor:c.primary,opacity:pressed?.8:1}]}><Text style={[s.primaryText,{color:c.background}]}>Find your first swap</Text><AppIcon name="right" size={20} color={c.background}/></Pressable>
+    <Pressable accessibilityRole="button" onPress={()=>router.push('/login')} style={({pressed})=>[s.primary,{backgroundColor:c.primary,opacity:pressed?.8:1}]}><Text style={[s.primaryText,{color:c.background}]}>Find your next treasure</Text><AppIcon name="right" size={20} color={c.background}/></Pressable>
 
     <Pressable accessibilityRole="button" onPress={()=>router.replace('/discover')} style={s.guest}><Text style={{color:c.muted,fontSize:12}}>Take a look around first</Text></Pressable>
    </View>
